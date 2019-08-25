@@ -1,0 +1,22 @@
+train_transaction_shape = (590540, 394)
+columns:
+C1-14
+D1-15
+M1-9
+P_emailDomain
+ProductCD
+R_emaildomain
+TransactionAmt
+TransactionDT
+TransactionID
+V1-339
+addr1-2
+card1-6
+dist1-2
+isFraud
+
+train_identity columns:
+DeviceType
+DeviceInfo
+id_12 - id_38
+TransactionDT
