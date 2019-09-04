@@ -11,6 +11,7 @@ from kFold_corss import kFold_cross
 # other
 import warnings
 warnings.filterwarnings("ignore")
+from change_format import read_data_csv
 data_path = r'D:\kaggle\data\ieee-fraud-detection'
 
 
@@ -29,4 +30,18 @@ def write(pred):
     df_sub['isFraud'] = list(pred)
     df_sub.to_csv(data_path + '\sub_01.csv', index = False)
     print 'number_0 = %d, number_1 = %d, all_data = %d' % (len(pred) - sum(pred), sum(pred), len(pred))
+def change_pred():
+    df_sub = read_data_csv(r'\sub')
+    pre = df_sub['isFraud'].tolist()
+    print df_sub.info()
+    ans = []
+    for x in pre:
+        if x < 0:
+            x = 0
+        elif x > 1:
+            x = 1
+        ans.append(x)
+    df_sub['isFraud'] = ans
+    df_sub.to_csv(data_path + '\sub_ratio_0_1.csv', index = False)
 
+change_pred()
