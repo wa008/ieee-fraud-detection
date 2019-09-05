@@ -11,7 +11,8 @@ data_path = r'D:\kaggle\data\ieee-fraud-detection'
 random.seed(2019)
 
 def kFold_cross(df_train, k = 5, label = 'isFraud'):
-    df_train = df_train.sample(frac = 1.0)
+    # df_train = df_train.sample(frac = 1.0)
+    df_train = df_train.sort_values(by = ['TransactionDT'])
     leng = len(df_train) / k
     index = (np.array(range(k)) * leng).tolist()
     index.append(len(df_train))

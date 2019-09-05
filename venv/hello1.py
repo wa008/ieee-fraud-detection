@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import random
 import time
+import json
 from tqdm import tqdm
 # machine learning
 import xgboost
@@ -22,6 +23,14 @@ def read_data(data_name):
     print data_name[1:] + '_shape = ', df.shape, 'time = ', time.time() - now
     return df
 
+def write_middle_data(data, data_name):
+    f = open(data_name, 'w')
+    f.write(data)
+    f.close()
+
+def read_middle_data(data_name):
+    f = open(data_name, 'r')
+    return f.read()
 def data_preprocess():
     now = time.time()
     df_train_tran = read_data(r'\train_transaction')
@@ -42,11 +51,14 @@ def data_preprocess():
     # 清楚缺失比例高的特征
     cols = df.columns.values
     delete_cols = []
+    null_ratio_dict = {}
     for col in tqdm(cols):
         x = sum(df[col].isna().values)
         null_ratio = x * 1.0 / len(df)
+        null_ratio_dict[col] = null_ratio
         if null_ratio > 0.5:
             delete_cols.append(col)
+    write_middle_data(json.dumps(null_ratio_dict), 'null_ratio_dict.txt')
     df = df.drop(delete_cols, axis = 1)
     print 'after_delete_shape = ', df.shape
     # 特征类型转换
@@ -94,6 +106,7 @@ def test():
 
 def main():
     df_train, df_test = data_preprocess()
+    print df_train.columns.values
     kFold_cross(df_train) # 0.97
     # pred = train(df_train, df_test)
     # write(pred)
