@@ -1,17 +1,16 @@
-train_transaction_shape = (590540, 394)
-columns:
-C1-14
-D1-15
-M1-9
-P_emailDomain
-ProductCD
-R_emaildomain
-TransactionAmt
+train_transaction_shape = (590540, 394) columns:
+C1-14:Counting
+D1-15:timeDelta,days between previous transaction
+M1-9:Match
+ProductCD:product id
+P_emailDomain:email
+R_emaildomain:email
+TransactionAmt:交易金额
 TransactionDT
 TransactionID
 V1-339
 addr1-2
-card1-6
+card1-6:付款card信息，类型、银行、国家、etc
 dist1-2
 isFraud
 
@@ -20,3 +19,16 @@ DeviceType
 DeviceInfo
 id_12 - id_38
 TransactionDT
+
+Vxxx:Vesta create features
+
+必选特征
+card_fea = ['card' + str(i) for i in range(1, 7)]
+C_fea = ['C' + str(i) for i in range(1, 15)]
+D_fea = ['D' + str(i) for i in range(1, 16)]
+['TransactionAMT','ProductCD', 'P_emailDomain', 'R_emaildomain', '']
+
+待观察特征
+M_fea = ['M' + str(i) for i in range(1, 10)]
+['addr1', 'addr2', '']
+必删特征

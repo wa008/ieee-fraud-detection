@@ -3,13 +3,23 @@ import numpy as np
 import pandas as pd
 import random
 import time
-import xgboost
+# import xgboost
 # machine learning
 # import xgboost
 from tqdm import tqdm
+import json
 import warnings
 warnings.filterwarnings("ignore")
 data_path = r'D:\kaggle\data\ieee-fraud-detection'
+
+def write_middle_data(data, data_name):
+    f = open(data_name, 'w')
+    f.write(data)
+    f.close()
+
+def read_middle_data(data_name):
+    f = open(data_name, 'r')
+    return f.read()
 
 def read_data(data_name):
     now = time.time()
@@ -23,7 +33,7 @@ df = pd.DataFrame([
     [3,4]
 ], columns=['a', 'b'])
 
-def main():
+def main_test():
     global df
     df1 = pd.DataFrame([
         [1,'a', 2],
@@ -37,7 +47,7 @@ def main():
         pass
     print df1
     print df1.info()
-main()
+
 def model_test():
     xgb = xgboost.XGBRegressor()
     x_train = np.array([['a',2], ['b',3], ['c', 3.0]])
@@ -87,9 +97,30 @@ def random_test1():
     df = df.sample(frac = 1.0).reset_index()
     print df
 
+def ratio_dict_test():
+    pass
+    d = json.loads(read_middle_data('null_ratio_dict.txt'))
+    eps = 0.05
+    ans = [0] * int(1.0 / eps)
+    for x, y in d.items():
+        ans[int(y / eps)] += 1
+    for i in range(int(1.0 / eps)):
+        print i*eps, '-', i*eps + eps, ans[i]
+
+def test1():
+    x = np.maximum([1,2,3], 2)
+    x = np.minimum(x, 2)
+    print x
+
+def main():
+    # ratio_dict_test()
+    test1()
+
 # main()
 # test1()
 # model_test()
 # test2()
 # data_test()
 # random_test1()
+
+main()
