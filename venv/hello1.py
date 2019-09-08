@@ -10,16 +10,20 @@ import xgboost
 # myself libs
 from kFold_corss import kFold_cross
 from write_result import write
+from add_other_feature1 import add_other_feature
 # other
 import warnings
 warnings.filterwarnings("ignore")
 data_path = r'D:\kaggle\data\ieee-fraud-detection'
 
-def read_data(data_name):
+def read_data(data_name, mark):
     now = time.time()
-    # nrows = 1000
-    # df = pd.read_csv(data_path + data_name + '.csv', nrows = nrows)
-    df = pd.read_csv(data_path + data_name + '.csv')
+    df = ''
+    if mark == 'small':
+        nrows = 100
+        df = pd.read_csv(data_path + data_name + '.csv', nrows = nrows)
+    elif mark == 'all':
+        df = pd.read_csv(data_path + data_name + '.csv')
     print data_name[1:] + '_shape = ', df.shape, 'read_time = ', time.time() - now
     return df
 
@@ -32,51 +36,90 @@ def read_middle_data(data_name):
     f = open(data_name, 'r')
     return f.read()
 
-ext_plus_fea = ['P_emaildomain']
+card_fea = ['card' + str(i) for i in range(1, 7)]
+C_fea = ['C' + str(i) for i in range(1, 15)]
+D_fea = ['D' + str(i) for i in range(1, 16)]
+M_fea = ['M' + str(i) for i in range(1, 10)]
+addr_fea = ['addr' + str(i) for i in range(1, 3)]
+ext_plus_fea = ['P_emaildomain'] + M_fea + addr_fea
 ext_reduce_fea = []
+get_dummies_fea = ['ProductCD', 'P_emaildomain'] + card_fea + addr_fea + M_fea
 
-def data_preprocess(delete_cols):
+def read_all_data(mark):
+    print 'read_all_data', '-'*100
     now = time.time()
-    df_train_tran = read_data(r'\train_transaction')
-    df_train_iden = read_data(r'\train_identity')
-    df_test_tran = read_data(r'\test_transaction')
-    df_test_iden = read_data(r'\test_identity')
-    print 'read_data_time = ', time.time() - now
-    # print df_train_tran.info()
+    df_train_tran = read_data(r'\train_transaction', mark)
+    df_train_iden = read_data(r'\train_identity', mark)
+    df_test_tran = read_data(r'\test_transaction', mark)
+    df_test_iden = read_data(r'\test_identity', mark)
     df_train = df_train_tran.merge(df_train_iden, how = 'left', on = 'TransactionID')
     df_test = df_test_tran.merge(df_test_iden, how = 'left', on = 'TransactionID')
+    print 'read_data_time = ', time.time() - now
+    return df_train, df_test
+
+def data_preprocess(df_train_, df_test_, delete_cols, drop_mask):
+    df_train = df_train_.copy()
+    df_test = df_test_.copy()
+    print 'data_preprocess', '-'*100
+    print 'df_train, df_test.shape = ', df_train.shape, df_test.shape
+    # print df_train.columns.values
     df_train = df_train[~df_train['isFraud'].isna()]
     df_train['train_or_test'] = np.array(['train'] * len(df_train))
     df_test['train_or_test'] = np.array(['test'] * len(df_test))
     df_train_label = df_train[['TransactionID', 'isFraud']]
     df_train = df_train.drop(['isFraud'], axis = 1)
     df = pd.concat([df_train, df_test])
+    df = add_other_feature(df)
 
-    df_copy = df.copy()
-    df = df.drop(delete_cols, axis = 1)
-    for fea in ext_plus_fea:
-        df[fea] = df_copy[fea]
-    df = df.drop(ext_reduce_fea, axis = 1)
-    print 'after_delete_plut_reduct_shape = ', df.shape
+    df = df.drop(list(set(delete_cols + ext_reduce_fea) - set(ext_plus_fea)), axis  =1)
+    print 'after_delete_plus_reduct_shape = ', df.shape
     print 'df_train, df_test, df shape = ', df_train.shape, df_test.shape, df.shape
     # 特征类型转换
-    cols = df.columns.values
-    str_col_num = 0
+    df_train = df[df['train_or_test'] == 'train']
+    df_test = df[df['train_or_test'] == 'test']
+    cols = df_train.columns.values
+    print 'before drop_mask df_train = ', df_train.shape
+    if drop_mask == 'fillna_mode':
+        for col in tqdm(cols):
+            df_train[col] = df_train[col].fillna(df_train[col].mode())
+    elif drop_mask == 'delete_row':
+        df_train = df_train.dropna(axis=0)
+    print 'after drop_mask df_train = ', df_train.shape
+    cols = df_test.columns.values
+    for col in tqdm(cols):
+        df_test[col] = df_test[col].fillna(df_test[col].mode())
+    df = pd.concat([df_train, df_test])
+    print sorted(df.columns.values)
+    print get_dummies_fea
+    print set(get_dummies_fea) - set(df.columns.values)
+    print 'before ont-hot = ', df.shape
+    for col in get_dummies_fea:
+        df[col] = df[col].astype(np.str)
+    for i in tqdm(range(len(get_dummies_fea))):
+        print 'i = ', i, get_dummies_fea[i]
+        if get_dummies_fea[i] in ['card1',]: continue
+        df = pd.get_dummies(df, columns=[get_dummies_fea[i]])
+    # df = pd.get_dummies(df, columns=get_dummies_fea)
+    for col in get_dummies_fea:
+        if col not in ['card1', ] and col in df.columns.values:
+            print 'drop col = ', col
+            df = df.drop([col], axis = 1)
+    print df.info()
+    print 'after ont-hot = ', df.shape
+    cols = df_test.columns.values
     for col in tqdm(cols):
         try:
-            df[col] = df[col].astype(np.float)
+            df_test[col] = df_test[col].astype(np.float)
         except:
-            str_col_num += 1
-            pass
-    df = df.fillna(-1)
-    df = pd.get_dummies(df)
-    print 'after ont-hot = ', df.shape, 'str_col_num = ', str_col_num
-    df_train = df[df['train_or_test_train'] == 1]
-    df_test = df[df['train_or_test_test'] == 1]
+            print 'null float col = ', col
+
+    df_train = df[df['train_or_test'] == 'train']
+    df_test = df[df['train_or_test'] == 'test']
     df_train = df_train.merge(df_train_label, how = 'left', on = 'TransactionID')
 
-    df_train = df_train.drop(['train_or_test_train','train_or_test_test', 'TransactionID'], axis = 1)
-    df_test = df_test.drop(['train_or_test_train','train_or_test_test', 'TransactionID'], axis = 1)
+    df_train = df_train.drop(['train_or_test', 'TransactionID'], axis = 1)
+    df_test = df_test.drop(['train_or_test', 'TransactionID'], axis = 1)
+    print 'df_train.info() = ', df_train.info()
     return df_train, df_test
 
 def delete_null_feature(ratio):
@@ -117,17 +160,19 @@ def test():
 
 def main():
     time_now = time.time()
-    # for ratio in [0.4, 0.2, 0.1, 0.05]:
+    df_train_glo, df_test_glo = read_all_data('all')
+    # for ratio in [0.5, 0.4, 0.2, 0.1, 0.05]:
     for ratio in []:
-        print '\ndelete_null_ratio = ', ratio
         delete_cols = delete_null_feature(ratio)
-        df_train, df_test = data_preprocess(delete_cols)
-        kFold_cross(df_train) # 0.97
-        print time.time() - time_now
+        for drop_mask in ['fillna_mode', 'delete_row']:
+            print '\n\ndelete_null_ratio = ', ratio, 'drop_mask = ', drop_mask, '-'*200
+            df_train, df_test = data_preprocess(df_train_glo, df_test_glo, delete_cols, drop_mask)
+            kFold_cross(df_train) # 0.97
+            print time.time() - time_now
     delete_cols = delete_null_feature(0.1)
-    df_train, df_test = data_preprocess(delete_cols)
+    df_train, df_test = data_preprocess(df_train_glo, df_test_glo, delete_cols, 'fillna_mode')
     pred = train(df_train, df_test)
-    write(pred)
+    # write(pred)
 
 if __name__ == '__main__':
     main()

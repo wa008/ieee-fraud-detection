@@ -26,9 +26,11 @@ Vxxx:Vesta create features
 card_fea = ['card' + str(i) for i in range(1, 7)]
 C_fea = ['C' + str(i) for i in range(1, 15)]
 D_fea = ['D' + str(i) for i in range(1, 16)]
-['TransactionAMT','ProductCD', 'P_emailDomain', 'R_emaildomain', '']
+M_fea = ['M' + str(i) for i in range(1, 10)]
+['TransactionAMT','ProductCD', 'P_emailDomain', 'R_emaildomain', 'TransactionDT']
 
 待观察特征
 M_fea = ['M' + str(i) for i in range(1, 10)]
 ['addr1', 'addr2', '']
+dist
 必删特征

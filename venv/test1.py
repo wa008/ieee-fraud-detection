@@ -108,9 +108,15 @@ def ratio_dict_test():
         print i*eps, '-', i*eps + eps, ans[i]
 
 def test1():
-    x = np.maximum([1,2,3], 2)
-    x = np.minimum(x, 2)
-    print x
+    df = pd.DataFrame([
+        [1,2],
+        [1,2],
+        [1,np.nan],
+    ], columns=['a', 'b'])
+    print df.info()
+    print df
+    df = pd.get_dummies(df, columns = ['a', 'b'])
+    print df
 
 def main():
     # ratio_dict_test()
