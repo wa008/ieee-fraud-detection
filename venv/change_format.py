@@ -9,6 +9,7 @@ import warnings
 warnings.filterwarnings("ignore")
 data_path = r'D:\kaggle\data\ieee-fraud-detection'
 
+from hello1 import read_all_data
 # print '中文'
 def change_data(data_name):
     now = time.time()
@@ -27,12 +28,16 @@ def read_data_pkl(data_name):
     df = pd.read_pickle(data_path + data_name + '.pkl')
     print data_name[1:] + '_shape = ', df.shape, 'time = ', time.time() - now
     return df
+
 def read_data_csv(data_name):
     now = time.time()
     df = pd.read_csv(data_path + data_name + '.csv')
     print data_name[1:] + '_shape = ', df.shape, 'time = ', time.time() - now
     return df
+
 def main():
+    df_train, df_test = read_all_data('small')
+    df_train.to_csv(data_path + r'\train_small.csv', index = False)
     # read_data_csv(r'\train_transaction')
     # read_data_pkl(r'\train_transaction')
     # change_data(r'\train_transaction')

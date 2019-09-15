@@ -1,8 +1,10 @@
 #coding=utf-8
 import numpy as np
 import pandas as pd
+import math
 import random
 import time
+import matplotlib.pyplot as plt
 # import xgboost
 # machine learning
 # import xgboost
@@ -109,18 +111,35 @@ def ratio_dict_test():
 
 def test1():
     df = pd.DataFrame([
-        [1,2],
-        [1,2],
-        [1,np.nan],
+        [1, 'a'],
+        [1, 'b'],
+        [1, np.nan],
     ], columns=['a', 'b'])
+    print df
+    df['a'] = df['a'].astype(np.str)
     print df.info()
+    df['b'] = df['b'].fillna(df['b'].mode())
+    print df['b'].dtype == 'object'
     print df
-    df = pd.get_dummies(df, columns = ['a', 'b'])
-    print df
+
+def test2():
+    x = []
+    print np.min(x)
+
+def test3():
+    x = 1
+    y = 21212.2323
+    print '%10.3f %10.3f' % (x, x)
+    print '%10.3f %10.3f' % (y, y)
+    xx = np.array([1,2,3])
+    print type(np.min(xx))
+    print '%10.3f %10.3f' % (float(np.min(xx)), y)
 
 def main():
     # ratio_dict_test()
-    test1()
+    # test1()
+    # test2()
+    test3()
 
 # main()
 # test1()

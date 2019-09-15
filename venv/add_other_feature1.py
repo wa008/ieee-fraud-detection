@@ -15,13 +15,6 @@ import warnings
 warnings.filterwarnings("ignore")
 data_path = r'D:\kaggle\data\ieee-fraud-detection'
 
-def read_data(data_name):
-    now = time.time()
-    nrows = 1000
-    df = pd.read_csv(data_path + data_name + '.csv', nrows = nrows)
-    # df = pd.read_csv(data_path + data_name + '.csv')
-    print data_name[1:] + '_shape = ', df.shape, 'read_time = ', time.time() - now
-    return df
 
 def add_other_feature(df):
     amt_list = df['TransactionAmt'].tolist()
@@ -36,4 +29,13 @@ def add_other_feature(df):
             assert len(s) == 1
             amt_float_list.append(0)
     df['TransactionAmt_float_num'] = amt_float_list
+    dt_list = df['TransactionDT'].tolist()
+    wed_list = []
+    for x in dt_list:
+        try:
+            wed_list.append(int(x) / 60 / 60 / 24)
+        except:
+            wed_list.append(np.nan)
+    df['week'] = wed_list
     return df
+

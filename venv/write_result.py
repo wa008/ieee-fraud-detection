@@ -11,14 +11,15 @@ from kFold_corss import kFold_cross
 # other
 import warnings
 warnings.filterwarnings("ignore")
-from change_format import read_data_csv
+from read_data import read_data_csv
 data_path = r'D:\kaggle\data\ieee-fraud-detection'
 
 
-def write(pred):
+def write(pred, time_name):
+    print 'write', '-' * 100
     df_sub = read_data_csv(r'\sample_submission')
     df_sub['isFraud'] = list(pred)
-    df_sub.to_csv(data_path + '\sub_ratio.csv', index = False)
+    df_sub.to_csv(data_path + '\sub_ratio_' + time_name + '.csv', index = False)
     print 'pred_mean = ', np.mean(pred)
     print 'pred_max = ', np.max(pred)
     print 'pred_min = ', np.min(pred)
@@ -28,7 +29,7 @@ def write(pred):
     pred = np.maximum(pred, 0)
     pred = np.minimum(pred, 1)
     df_sub['isFraud'] = list(pred)
-    df_sub.to_csv(data_path + '\sub_01.csv', index = False)
+    df_sub.to_csv(data_path + '\sub_ ' + time_name + '_01.csv', index = False)
     print 'ypred_average =',np.average(list(pred))
 
 # change_pred()
