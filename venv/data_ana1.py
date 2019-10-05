@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 from hello1 import read_all_data
 
 def main():
-    df_train, df_test = read_all_data('all')
+    df_train, df_test = read_all_data('small')
     dt = df_train['TransactionDT'].tolist()
     print np.min(dt)
     print np.max(dt)

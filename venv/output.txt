@@ -30,3 +30,8 @@ delete_null_ratio auc
 0.997415 12670.3590
 0.05 delete_row
 0.996792 12914.77
+
+
+0.8 delete_row
+8244.4
+

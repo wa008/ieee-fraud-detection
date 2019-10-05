@@ -26,10 +26,5 @@ def write(pred, time_name):
     print 'pred_ave = ', np.average(pred)
     print 'pred_median = ', np.median(pred)
     print 'pred_st = ', np.std(pred)
-    pred = np.maximum(pred, 0)
-    pred = np.minimum(pred, 1)
-    df_sub['isFraud'] = list(pred)
-    df_sub.to_csv(data_path + '\sub_ ' + time_name + '_01.csv', index = False)
-    print 'ypred_average =',np.average(list(pred))
 
 # change_pred()

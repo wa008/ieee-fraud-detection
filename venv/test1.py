@@ -5,6 +5,7 @@ import math
 import random
 import time
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import OneHotEncoder
 # import xgboost
 # machine learning
 # import xgboost
@@ -14,25 +15,10 @@ import warnings
 warnings.filterwarnings("ignore")
 data_path = r'D:\kaggle\data\ieee-fraud-detection'
 
-def write_middle_data(data, data_name):
-    f = open(data_name, 'w')
-    f.write(data)
-    f.close()
-
-def read_middle_data(data_name):
-    f = open(data_name, 'r')
-    return f.read()
-
-def read_data(data_name):
-    now = time.time()
-    df = pd.read_pickle(data_path + data_name + '.pkl')
-    print data_name[1:] + '_shape = ', df.shape, 'time = ', time.time() - now
-    return df
-
 df = pd.DataFrame([
     [1,2],
-    [2,3],
-    [3,4]
+    [1,3],
+    [3,2]
 ], columns=['a', 'b'])
 
 def main_test():
@@ -135,11 +121,19 @@ def test3():
     print type(np.min(xx))
     print '%10.3f %10.3f' % (float(np.min(xx)), y)
 
+def test4():
+    global df
+    print df
+    x = df['a'].value_counts(dropna = False, normalize = False)
+    print type(x), x
+
+
 def main():
     # ratio_dict_test()
     # test1()
     # test2()
-    test3()
+    # test3()
+    test4()
 
 # main()
 # test1()
