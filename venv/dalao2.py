@@ -6,6 +6,7 @@ import time
 import json
 from tqdm import tqdm
 # machine learning
+import lightgbm as lgb
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import OneHotEncoder
@@ -21,6 +22,7 @@ from add_other_feature1 import add_other_feature
 from read_data import read_all_data
 from read_data import read_middle_data
 from train import train
+# from dalao_func1 import train_model_classification
 # other
 pd.set_option('display.max_columns', None)
 import warnings
@@ -121,7 +123,8 @@ def data_preprocess(df_train_, df_test_, delete_cols = [], drop_mask = []):
     X = clean_inf_nan(X)
     X_test = clean_inf_nan(X_test)
     return X, y, X_test
-def train_func(X, y, X_test):
+
+def train_dalao(X, y, X_test):
     n_fold = 5
     folds = TimeSeriesSplit(n_splits=n_fold)
     folds = KFold(n_splits=5)
@@ -145,15 +148,30 @@ def train_func(X, y, X_test):
                                                       verbose=500, early_stopping_rounds=200, n_estimators=5000, averaging='usual', n_jobs=-1)
     return result_dict_lgb['prediction']
 
+def train_lgb(X, y, X_test):
+    model = lgb.LGBMRegressor()
+    model.fit(X, y, eval_metric='AUC')
+    ypred = model.predict(X_test)
+    ypred = np.maximum(0, ypred)
+    ypred = np.minimum(1, ypred)
+    return ypred
+
+def train_xgb(X, y, X_test):
+    model = xgboost.XGBRegressor()
+    model.fit(X, y, eval_metric='auc')
+    ypred = model.predict(X_test)
+    ypred = np.maximum(0, ypred)
+    ypred = np.minimum(1, ypred)
+    return ypred
+
 def main():
-    # df_train_glo, df_test_glo = read_all_data('all')
-    df_train_glo, df_test_glo = read_all_data('small')
+    df_train_glo, df_test_glo = read_all_data('all')
+    # df_train_glo, df_test_glo = read_all_data('small')
     X, y, X_test = data_preprocess(df_train_glo, df_test_glo)
-    ypred = train_func(X, y, X_test)
-    print type(ypred)
-    print len(ypred)
-    print list(ypred)[: 10]
-    write(ypred, '1005_1')
+    # ypred = train_lgb(X, y, X_test)
+    # write(ypred, '1005_2')
+    ypred = train_xgb(X, y, X_test)
+    write(ypred, '1005_2')
 
 if __name__ == '__main__':
     main()

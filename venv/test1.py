@@ -122,11 +122,15 @@ def test3():
     print '%10.3f %10.3f' % (float(np.min(xx)), y)
 
 def test4():
-    global df
-    print df
-    x = df['a'].value_counts(dropna = False, normalize = False)
-    print type(x), x
-
+    x = [1, 2, 1, 2, 3]
+    plt.hist(x)
+    plt.show()
+def test5():
+    x = [1, 2, 1, 2, 3]
+    y = [1, 2, 1, 3]
+    plt.plot(range(len(x)), x, c = 'r')
+    plt.plot(range(len(y)), y, c = 'b')
+    plt.show()
 
 def main():
     # ratio_dict_test()
@@ -134,6 +138,7 @@ def main():
     # test2()
     # test3()
     test4()
+    # test5()
 
 # main()
 # test1()

@@ -14,7 +14,6 @@ from tqdm import tqdm_notebook
 
 import lightgbm as lgb
 import xgboost as xgb
-from catboost import CatBoostRegressor, CatBoostClassifier
 from sklearn import metrics
 
 from itertools import product
@@ -150,7 +149,7 @@ def group_mean_log_mae(y_true, y_pred, types, floor=1e-9):
     return np.log(maes.map(lambda x: max(x, floor))).mean()
 
 
-def train_model_regression(X, X_test, y, params, folds=None, model_type='lgb', eval_metric='mae', columns=None, plot_feature_importance=False, model=None,
+def train_model_regression(X, X_test, y, **params, folds=None, model_type='lgb', eval_metric='mae', columns=None, plot_feature_importance=False, model=None,
                                verbose=10000, early_stopping_rounds=200, n_estimators=50000, splits=None, n_folds=3):
     """
     A function to train a variety of regression models.
@@ -232,18 +231,10 @@ def train_model_regression(X, X_test, y, params, folds=None, model_type='lgb', e
 
             y_pred_valid = model.predict(X_valid).reshape(-1,)
             score = metrics_dict[eval_metric]['sklearn_scoring_function'](y_valid, y_pred_valid)
-            print(f'Fold {fold_n}. {eval_metric}: {score:.4f}.')
-            print('')
+            print 'Fold {fold_n}. {eval_metric}: {score:.4f}.'
+            print ''
 
             y_pred = model.predict(X_test).reshape(-1,)
-
-        if model_type == 'cat':
-            model = CatBoostRegressor(iterations=20000,  eval_metric=metrics_dict[eval_metric]['catboost_metric_name'], **params,
-                                      loss_function=metrics_dict[eval_metric]['catboost_metric_name'])
-            model.fit(X_train, y_train, eval_set=(X_valid, y_valid), cat_features=[], use_best_model=True, verbose=False)
-
-            y_pred_valid = model.predict(X_valid)
-            y_pred = model.predict(X_test)
 
         oof[valid_index] = y_pred_valid.reshape(-1,)
         if eval_metric != 'group_mae':
@@ -335,7 +326,7 @@ def train_model_classification(X, X_test, y, params, folds, model_type='lgb', ev
 
     # split and train on folds
     for fold_n, (train_index, valid_index) in enumerate(folds.split(X)):
-        print(f'Fold {fold_n + 1} started at {time.ctime()}')
+        print 'Fold {fold_n + 1} started at {time.ctime()}'
         if type(X) == np.ndarray:
             X_train, X_valid = X[columns][train_index], X[columns][valid_index]
             y_train, y_valid = y[train_index], y[valid_index]
@@ -357,7 +348,7 @@ def train_model_classification(X, X_test, y, params, folds, model_type='lgb', ev
             valid_data = xgb.DMatrix(data=X_valid, label=y_valid, feature_names=X.columns)
 
             watchlist = [(train_data, 'train'), (valid_data, 'valid_data')]
-            model = xgb.train(dtrain=train_data, num_boost_round=n_estimators, evals=watchlist, early_stopping_rounds=early_stopping_rounds, verbose_eval=verbose, params=params)
+            model = xgb.train(dtrain=train_data, num_boost_round=n_estimators, evals=watchlist, early_stopping_rounds=early_stopping_rounds, verbose_eval=verbose, **params)
             y_pred_valid = model.predict(xgb.DMatrix(X_valid, feature_names=X.columns), ntree_limit=model.best_ntree_limit)
             y_pred = model.predict(xgb.DMatrix(X_test, feature_names=X.columns), ntree_limit=model.best_ntree_limit)
 
@@ -367,18 +358,10 @@ def train_model_classification(X, X_test, y, params, folds, model_type='lgb', ev
 
             y_pred_valid = model.predict(X_valid).reshape(-1,)
             score = metrics_dict[eval_metric]['sklearn_scoring_function'](y_valid, y_pred_valid)
-            print(f'Fold {fold_n}. {eval_metric}: {score:.4f}.')
+            print 'Fold {fold_n}. {eval_metric}: {score:.4f}.'
             print('')
 
             y_pred = model.predict_proba(X_test)
-
-        if model_type == 'cat':
-            model = CatBoostClassifier(iterations=n_estimators, eval_metric=metrics_dict[eval_metric]['catboost_metric_name'], **params,
-                                      loss_function=Logloss)
-            model.fit(X_train, y_train, eval_set=(X_valid, y_valid), cat_features=[], use_best_model=True, verbose=False)
-
-            y_pred_valid = model.predict(X_valid)
-            y_pred = model.predict(X_test)
 
         if averaging == 'usual':
 
