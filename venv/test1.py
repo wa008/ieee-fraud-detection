@@ -6,6 +6,7 @@ import random
 import time
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
+from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 # import xgboost
 # machine learning
 # import xgboost
@@ -125,21 +126,34 @@ def test4():
     x = [1, 2, 1, 2, 3]
     plt.hist(x)
     plt.show()
-def test5():
-    x = [1, 2, 1, 2, 3]
-    y = [1, 2, 1, 3]
-    plt.plot(range(len(x)), x, c = 'r')
-    plt.plot(range(len(y)), y, c = 'b')
-    plt.show()
 
+def test5(x):
+    print 'test5_param = ', x
+    def test6(x):
+        print 'test6_param = ', x
+        return x * x
+    return test6
+
+def test6():
+    def f(x):
+        return {'loss' : x**2, 'status' : STATUS_OK}
+    t = Trials()
+    best = fmin(
+        fn=f,
+        space=hp.uniform('x', -200, 20),
+        algo=tpe.suggest,
+        max_evals=100)
+    print best
+    for x in t.trials[: 10]:
+        print x
 def main():
     # ratio_dict_test()
     # test1()
     # test2()
     # test3()
-    test4()
-    # test5()
-
+    # test4()
+    # test6()
+    pass
 # main()
 # test1()
 # model_test()

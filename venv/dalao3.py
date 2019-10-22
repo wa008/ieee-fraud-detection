@@ -9,11 +9,10 @@ from tqdm import tqdm
 import lightgbm as lgb
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from sklearn.metrics import mean_absolute_error
 from collections import Counter
-from sklearn.model_selection import TimeSeriesSplit, KFold
+from sklearn.model_selection import TimeSeriesSplit, KFold, StratifiedKFold
 import xgboost
 # myself libs
 from kFold_corss import kFold_cross
@@ -27,6 +26,10 @@ from train import train
 pd.set_option('display.max_columns', None)
 import warnings
 warnings.filterwarnings("ignore")
+from xgboost import plot_importance
+from sklearn.metrics import make_scorer, roc_auc_score
+from sklearn.model_selection import KFold,TimeSeriesSplit
+from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 
 card_fea = ['card' + str(i) for i in range(1, 7)]
 C_fea = ['C' + str(i) for i in range(1, 15)]
@@ -39,8 +42,11 @@ get_dummies_fea = ['ProductCD', 'P_emaildomain', 'R_emaildomain'] + card_fea + a
 ext_plus_fea = ['P_emaildomain'] + M_fea + addr_fea
 ext_plus_fea = [x for x in get_dummies_fea]
 
+X_train = 'x'
+y_train = 'y'
 
 def data_preprocess(df_train_, df_test_, delete_cols = [], drop_mask = []):
+    print 'data_preprocess', '-' * 100
     train = df_train_.copy()
     test = df_test_.copy()
 
@@ -113,7 +119,6 @@ def data_preprocess(df_train_, df_test_, delete_cols = [], drop_mask = []):
     X = train.sort_values('TransactionDT').drop(['isFraud', 'TransactionDT', 'TransactionID'], axis=1)
     y = train.sort_values('TransactionDT')['isFraud']
     X_test = test.drop(['TransactionDT', 'TransactionID'], axis=1)
-    print 1
     del train
     test = test[["TransactionDT", 'TransactionID']]
     # by https://www.kaggle.com/dimartinot
@@ -123,76 +128,88 @@ def data_preprocess(df_train_, df_test_, delete_cols = [], drop_mask = []):
     # Cleaning infinite values to NaN
     X = clean_inf_nan(X)
     X_test = clean_inf_nan(X_test)
-    print 2
     return X, y, X_test
 
-def train_dalao(X, y, X_test):
-    global params
-    n_fold = 5
-    folds = TimeSeriesSplit(n_splits=n_fold)
-    folds = KFold(n_splits=5)
-    result_dict_lgb = train_model_classification(X=X, X_test=X_test, y=y, params=params, folds=folds, model_type='lgb', eval_metric='auc', plot_feature_importance=True,
-                                                      verbose=500, early_stopping_rounds=200, n_estimators=5000, averaging='usual', n_jobs=-1)
-    return result_dict_lgb['prediction']
-
-def train_lgb_cla(X, y, X_test, params = {}):
-    model = lgb.LGBMClassifier(**params)
-    params_fit = {
-        'verbose' : 0,
-        'eval_metric' : 'auc',
+def objective(params):
+    time1 = time.time()
+    params = {
+        'max_depth': int(params['max_depth']),
+        'gamma': "{:.3f}".format(params['gamma']),
+        'subsample': "{:.2f}".format(params['subsample']),
+        'reg_alpha': "{:.3f}".format(params['reg_alpha']),
+        'reg_lambda': "{:.3f}".format(params['reg_lambda']),
+        'learning_rate': "{:.3f}".format(params['learning_rate']),
+        'num_leaves': '{:.3f}'.format(params['num_leaves']),
+        'colsample_bytree': '{:.3f}'.format(params['colsample_bytree']),
+        'min_child_samples': '{:.3f}'.format(params['min_child_samples']),
+        'feature_fraction': '{:.3f}'.format(params['feature_fraction']),
+        'bagging_fraction': '{:.3f}'.format(params['bagging_fraction'])
     }
-    model.fit(X, y, **params_fit)
-    ypred = model.predict_proba(X_test)[:, 1]
-    return ypred
+    print("\n############## New Run ################")
+    print 'params = ', params
+    FOLDS = 5
+    count=1
+    # skf = StratifiedKFold(n_splits=FOLDS, shuffle=True, random_state=42)
 
-def train_lgb_reg(X, y, X_test, params = {}):
-    model = lgb.LGBMRegressor(**params)
-    params_fit = {
-        'verbose' : 1,
-        'eval_metric' : 'auc',
+    tss = TimeSeriesSplit(n_splits=FOLDS)
+    score_mean = 0
+    for tr_idx, val_idx in tss.split(X_train, y_train):
+        clf = xgboost.XGBClassifier(
+            n_estimators=600, random_state=2019,
+            **params
+        )
+        print 'tr_idx, val_idx = '
+        print type(tr_idx), tr_idx
+        print type(val_idx), val_idx
+        X_tr, X_vl = X_train.iloc[tr_idx, :], X_train.iloc[val_idx, :]
+        y_tr, y_vl = y_train.iloc[tr_idx], y_train.iloc[val_idx]
+        clf.fit(X_tr, y_tr)
+        score = make_scorer(roc_auc_score, needs_proba=True)(clf, X_vl, y_vl)
+        # plt.show()
+        score_mean += score
+        print count, 'CV - score:', round(score, 4),
+        count += 1
+    time2 = time.time() - time1
+    print 'Total Time Run: ', round(time2 * 1.0 / 60,2)
+    gc.collect()
+    print 'Mean ROC_AUC: ', score_mean * 1.0 / FOLDS
+    del X_tr, X_vl, y_tr, y_vl, clf, score
+    return -(score_mean / FOLDS)
+
+def train_xgb(X, y, X_test, params={}):
+    print 'train_xgb', '-' * 100
+    global X_train, y_train
+    X_train = X
+    y_train = y
+    space = {
+        'max_depth': hp.quniform('max_depth', 7, 23, 1),
+        'reg_alpha':  hp.uniform('reg_alpha', 0.01, 0.4),
+        'reg_lambda': hp.uniform('reg_lambda', 0.01, .4),
+        'learning_rate': hp.uniform('learning_rate', 0.01, 0.2),
+        'colsample_bytree': hp.uniform('colsample_bytree', 0.3, .9),
+        'gamma': hp.uniform('gamma', 0.01, .7),
+        'num_leaves': hp.choice('num_leaves', list(range(20, 250, 10))),
+        'min_child_samples': hp.choice('min_child_samples', list(range(100, 250, 10))),
+        'subsample': hp.choice('subsample', [0.2, 0.4, 0.5, 0.6, 0.7, .8, .9]),
+        'feature_fraction': hp.uniform('feature_fraction', 0.4, .8),
+        'bagging_fraction': hp.uniform('bagging_fraction', 0.4, .9)
     }
-    model.fit(X, y, *params_fit)
-    ypred = model.predict_proba(X_test)[:, 1]
-    return ypred
-
-
-def train_xgb(X, y, X_test, params = {}):
-    params_init = {
-        'n_estimators' : 300,
-        'bagging_fraction': 0.8993155305338455, 'colsample_bytree': 0.7463058454739352, 'feature_fraction': 0.7989765808988153,
-        'gamma': 0.6665437467229817, 'learning_rate': 0.013887824598276186, 'max_depth': 16, 'min_child_samples': 170, 'num_leaves': 220,
-        'reg_alpha': 0.39871702770778467, 'reg_lambda': 0.24309304355829786, 'subsample': 0.7
-    }
-    model = xgboost.XGBClassifier(**params_init)
-    model.fit(X, y, eval_metric='auc')
+    best = fmin(fn=objective,
+            space=space,
+            algo=tpe.suggest,
+            max_evals=27)
+    best_params = space_eval(space, best)
+    best_params['max_depth'] = int(best_params['max_depth'])
+    model = xgboost.XGBClassifier(n_estimators = 300, **best_params)
     ypred = model.predict_proba(X_test)[:, 1]
     return ypred
 
 def main():
-    params = {
-          'num_leaves': 256,
-          'min_child_samples': 79,
-          'objective': 'binary',
-          'max_depth': 13,
-          'learning_rate': 0.03,
-          "boosting_type": "gbdt",
-          "subsample_freq": 3,
-          "subsample": 0.9,
-          # "bagging_seed": 11,
-          # "eval_metric": 'auc',
-          # "verbosity": -1,
-          'reg_alpha': 0.3,
-          'reg_lambda': 0.3,
-          'colsample_bytree': 0.9,
-          #'categorical_feature': cat_cols
-    }
-    # df_train_glo, df_test_glo = read_all_data('small')
-    df_train_glo, df_test_glo = read_all_data('all')
+    df_train_glo, df_test_glo = read_all_data('small')
+    # df_train_glo, df_test_glo = read_all_data('all')
     X, y, X_test = data_preprocess(df_train_glo, df_test_glo)
-    # ypred = train_lgb_cla(X, y, X_test, params)
-    # write(ypred, '1006_1')
-    ypred = train_xgb(X, y, X_test, params)
-    write(ypred, '1006_2')
+    ypred = train_xgb(X, y, X_test)
+    write(ypred, '1006_3')
 
 if __name__ == '__main__':
     main()

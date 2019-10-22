@@ -29,7 +29,7 @@ def read_data_pkl(data_name):
 def read_data_csv(data_name, mark = 'all'):
     df = ''
     if mark == 'small':
-        nrows = 500
+        nrows = 2000
         df = pd.read_csv(data_path + data_name + '.csv', nrows = nrows)
     elif mark == 'all':
         df = pd.read_csv(data_path + data_name + '.csv')
