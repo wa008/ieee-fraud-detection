@@ -8,7 +8,7 @@
       3. label encode
       4. combine encode
 2. trick
-   1. 构造client id作为唯一标识，绝大多情况下同一个uid下的交易，要么都作弊，要么都不作弊
+   1. 构造client id作为唯一标识，绝大多情况下同一个uid下的交易，要么都作弊，要么都不作弊，对同一个client id下的其他特征进行【特征编码】
 3. xgboost
    1. 初始化参数demo+xgb特征权重可视化
 
