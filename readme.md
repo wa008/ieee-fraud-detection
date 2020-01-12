@@ -1,12 +1,16 @@
 # first place notebook
 
-1. feature selection
-   1. 对每一个特征单独进行训练，以训练集第一个月的数据作为训练集，最后一个月数据作为验证集，选取训练集验证集上auc>0.5的特征，以此会剔除19个特征
-   2. 特征编码方式
+1. feature engineering
+   1. 特征编码
       1. agg(min, max, mean, std)
       2. frequence encode
       3. label encode
       4. combine encode
+   2. correlation analysis
+      1. heat map
+      2. 根据NaN的数量，判断特征之间的相似性（楼主是将缺失值数量相同的特征作为相似特征
+   3. feature selection
+      1. 对每一个特征单独进行训练，以训练集第一个月的数据作为训练集，最后一个月数据作为验证集，选取训练集验证集上auc>0.5的特征，以此会剔除19个特征。
 2. trick
    1. 构造client id作为唯一标识，绝大多情况下同一个uid下的交易，要么都作弊，要么都不作弊，对同一个client id下的其他特征进行【特征编码】
 3. xgboost
