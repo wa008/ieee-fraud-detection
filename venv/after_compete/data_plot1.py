@@ -22,25 +22,32 @@ pd.set_option('display.max_columns', None)
 import warnings
 warnings.filterwarnings("ignore")
 
-df_train, df_test = read_all_data('all')
-print df_train.shape, df_test.shape
-print df_train.info()
+def main():
+    data_size = sys.argv[1] # all or small
+    df_train, df_test = read_all_data(data_size)
+    print df_train.shape, df_test.shape
 
-cols = []
-for col in df_train.columns:
-    if 'D' in col:
-        print col
-        cols.append(col)
+    row = 3
+    col = 5
+    for i in range(1, 16):
+        plt.subplot(row, col, i)
+        plt.scatter(df_train['TransactionDT'], df_train['D' + str(i)])
+        plt.title('D' + str(i))
 
-print df_train[cols].describe()
+    plt.savefig('./picture/Transaction_D_index.jpg')
+    plt.show()
 
-row = 5
-col = 3
-for i in range(1, 16):
-    x = np.sum(df_train['D' + str(i)].isna())
-    print i, x, x * 1.0 / len(df_train)
-    plt.subplot(row, col, i)
-    plt.hist(df_train['D' + str(i)].dropna(), bins = 10)
-plt.show()
+def plot1():
+    data_size = sys.argv[1] # all or small
+    df_train, df_test = read_all_data(data_size)
+
+    plt.figure(figsize=(15,5))
+    plt.scatter(df_train.TransactionDT,df_train.D15)
+    plt.title('Original D15')
+    plt.xlabel('Time')
+    plt.ylabel('D15')
+    plt.show()
 
 
+main()
+# plot1()

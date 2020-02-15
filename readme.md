@@ -5,6 +5,7 @@
       1. agg(min, max, mean, std)
       2. frequence encode
       3. label encode
+         1. pd.factorize() 可以快速进行label encode
       4. combine encode
    2. correlation analysis
       1. heat map（correlation analysis）
@@ -61,3 +62,4 @@ del clf, h; x=gc.collect()
 4. 可视化
    1. 多个子图可视化
    2. heat map
+

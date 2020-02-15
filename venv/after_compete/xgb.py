@@ -41,7 +41,6 @@ def plot():
     plt.show()
 
 
-
 def data_normalize():
     # NORMALIZE D COLUMNS
     for i in range(1,16):
