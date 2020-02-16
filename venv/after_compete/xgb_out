@@ -1,0 +1,92 @@
+D:\kaggle\data\ieee-fraud-detection\after_compete\
+XGBoost version: 0.82
+read_all_data ----------------------------------------------------------------------------------------------------
+read_data_time =  44.7769999504
+(590540, 434) (506691, 433)
+M1.most_common =  [('T', 319415), (nan, 271100), ('F', 25)]
+M1.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M2.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M2.most_common =  [(1, 285468), (0, 271100), (-1, 33972)]
+M3.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M3.most_common =  [(0, 271100), (1, 251731), (-1, 67709)]
+M4.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M4.most_common =  [(0, 590540)]
+M5.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M5.most_common =  [(0, 350482), (-1, 132491), (1, 107567)]
+M6.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M6.most_common =  [(-1, 227856), (1, 193324), (0, 169360)]
+M7.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M7.most_common =  [(0, 346265), (-1, 211374), (1, 32901)]
+M8.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M8.most_common =  [(0, 346252), (-1, 155251), (1, 89037)]
+M9.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
+M9.most_common =  [(0, 346252), (1, 205656), (-1, 38632)]
+cents, 
+nm : card1_addr1
+nm : card1_addr1_P_emaildomain
+TransactionAmt_card1_mean
+TransactionAmt_card1_std
+TransactionAmt_card1_addr1_mean
+TransactionAmt_card1_addr1_std
+TransactionAmt_card1_addr1_P_emaildomain_mean
+TransactionAmt_card1_addr1_P_emaildomain_std
+D9_card1_mean
+D9_card1_std
+D9_card1_addr1_mean
+D9_card1_addr1_std
+D9_card1_addr1_P_emaildomain_mean
+D9_card1_addr1_P_emaildomain_std
+D11_card1_mean
+D11_card1_std
+D11_card1_addr1_mean
+D11_card1_addr1_std
+D11_card1_addr1_P_emaildomain_mean
+D11_card1_addr1_P_emaildomain_std
+TransactionAmt_uid_mean
+TransactionAmt_uid_std
+D4_uid_mean
+D4_uid_std
+D9_uid_mean
+D9_uid_std
+D10_uid_mean
+D10_uid_std
+D15_uid_mean
+D15_uid_std
+C1_uid_mean
+C2_uid_mean
+C4_uid_mean
+C5_uid_mean
+C6_uid_mean
+C7_uid_mean
+C8_uid_mean
+C9_uid_mean
+C10_uid_mean
+C11_uid_mean
+C12_uid_mean
+C13_uid_mean
+C14_uid_mean
+M1_uid_mean
+M2_uid_mean
+M3_uid_mean
+M4_uid_mean
+M5_uid_mean
+M6_uid_mean
+M7_uid_mean
+M8_uid_mean
+M9_uid_mean
+uid_P_emaildomain_ct,  uid_dist1_ct,  uid_DT_M_ct,  uid_id_02_ct,  uid_cents_ct,  C14_uid_std
+uid_C13_ct,  uid_V314_ct,  uid_V127_ct,  uid_V136_ct,  uid_V309_ct,  uid_V307_ct,  uid_V320_ct,  outsider15
+NOW USING THE FOLLOWING 437 FEATURES.
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 590540 entries, 0 to 590539
+Columns: 437 entries, TransactionID to D11_card1_addr1_P_emaildomain_std
+dtypes: float32(26), float64(382), int32(10), int64(19)
+memory usage: 1.8 GB
+None
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 590540 entries, 0 to 590539
+Data columns (total 1 columns):
+TransactionAmt    590540 non-null float64
+dtypes: float64(1)
+memory usage: 9.0 MB
+None

@@ -36,16 +36,10 @@ def read_data_csv(data_name, mark = 100):
 def read_all_data(mark = 100):
     print 'read_all_data', '-'*100
     now = time.time()
-    if mark > 0:
-        df_train_tran = read_data_csv(r'\train_transaction', mark)
-        df_train_iden = read_data_csv(r'\train_identity', mark)
-        df_test_tran = read_data_csv(r'\test_transaction', mark)
-        df_test_iden = read_data_csv(r'\test_identity', mark)
-    else:
-        df_train_tran = read_data_pkl(r'\train_transaction')
-        df_train_iden = read_data_pkl(r'\train_identity')
-        df_test_tran = read_data_pkl(r'\test_transaction')
-        df_test_iden = read_data_pkl(r'\test_identity')
+    df_train_tran = read_data_csv(r'\train_transaction', mark)
+    df_train_iden = read_data_csv(r'\train_identity', mark)
+    df_test_tran = read_data_csv(r'\test_transaction', mark)
+    df_test_iden = read_data_csv(r'\test_identity', mark)
     df_train = df_train_tran.merge(df_train_iden, how = 'left', on = 'TransactionID')
     df_test = df_test_tran.merge(df_test_iden, how = 'left', on = 'TransactionID')
     del df_train_tran, df_train_iden, df_test_tran, df_test_iden

@@ -6,9 +6,9 @@ def change_data(x):
 
 def main():
     df = pd.DataFrame(data = np.arange(6).reshape(3, 2), columns = ['a', 'b'])
-    print np.arange(6)
-    print df
-    change_data(df)
-    print df
+    df['a'] = df['a'].apply(lambda x : 1 if x == 1 else 2 if x == 2 else 3)
+
+    for i in range(10):
+        print i, 
 
 main()

@@ -10,18 +10,21 @@ from tqdm import tqdm
 # machine learning
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.metrics import mean_absolute_error, roc_auc_score
 from collections import Counter
+from sklearn.model_selection import GroupKFold
 import xgboost
 import datetime
 sys.path.append('..')
 # myself libs
-from read_data import read_all_data
+from read_data import read_all_data, read_data_csv
 # other
 pd.set_option('display.max_columns', None)
 import warnings
 warnings.filterwarnings("ignore")
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 
 data_path = r'D:\kaggle\data\ieee-fraud-detection\after_compete\p'[: -1]
 print data_path
@@ -90,8 +93,17 @@ def encode_AG(main_columns, uids, aggregations=['mean'], train_df = 1, test_df =
                 new_col_name = main_column+'_'+col+'_'+agg_type
                 temp_df = pd.concat([train_df[[col, main_column]], test_df[[col,main_column]]])
                 if usena: temp_df.loc[temp_df[main_column]==-1,main_column] = np.nan
-                temp_df = temp_df.groupby([col])[main_column].agg([agg_type]).reset_index().rename(
+                # if agg_type == 'mean':
+                    # temp_df[main_column] = temp_df[main_column].astype(np.float64)
+                try:
+                    temp_df = temp_df.groupby([col])[main_column].agg([agg_type]).reset_index().rename(
                                                         columns={agg_type: new_col_name})
+                except:
+                    print temp_df[main_column].dtypes
+                    print "\ndegbug\n", col, main_column, agg_type, "\n"
+                    print Counter(temp_df[main_column].tolist()).most_common(10)
+                    temp_df[main_column] = temp_df[main_column].astype(np.float64)
+                    time.sleep(10)
 
                 temp_df.index = list(temp_df[col])
                 temp_df = temp_df[new_col_name].to_dict()   
@@ -116,11 +128,11 @@ def encode_CB(col1,col2,df1 = 1,df2 = 1):
 def encode_AG2(main_columns, uids, train_df = 1, test_df = 1):
     for main_column in main_columns:  
         for col in uids:
-            comb = pd.concat([train_df[[col]+[main_column]],test_df[[col]+[main_column]]],axis=0)
+            comb = pd.concat([train_df[[col]+[main_column]], test_df[[col]+[main_column]]],axis=0)
             mp = comb.groupby(col)[main_column].agg(['nunique'])['nunique'].to_dict()
             train_df[col+'_'+main_column+'_ct'] = train_df[col].map(mp).astype('float32')
             test_df[col+'_'+main_column+'_ct'] = test_df[col].map(mp).astype('float32')
-            print new_col_name
+            print col+'_'+main_column+'_ct, ',
 
 def encode(X_train, X_test):
     # TRANSACTION AMT CENTS
@@ -141,6 +153,7 @@ def encode(X_train, X_test):
 def remove_cols(X_train, X_test = -1):
     cols = list( X_train.columns )
     cols.remove('TransactionDT')
+    cols.remove('isFraud')
     for c in ['D6','D7','D8','D9','D12','D13','D14']:
         cols.remove(c)
         
@@ -195,13 +208,14 @@ def build95_feature_imp():
     plt.show()
     del clf, h; x=gc.collect()
 
-def other2():
+def add_datetime_feature(X_train, X_test):
     START_DATE = datetime.datetime.strptime('2017-11-30', '%Y-%m-%d')
     X_train['DT_M'] = X_train['TransactionDT'].apply(lambda x: (START_DATE + datetime.timedelta(seconds = x)))
     X_train['DT_M'] = (X_train['DT_M'].dt.year-2017)*12 + X_train['DT_M'].dt.month 
 
     X_test['DT_M'] = X_test['TransactionDT'].apply(lambda x: (START_DATE + datetime.timedelta(seconds = x)))
     X_test['DT_M'] = (X_test['DT_M'].dt.year-2017)*12 + X_test['DT_M'].dt.month 
+    return X_train, X_test
 
 def BUILD95_train():
     oof = np.zeros(len(X_train))
@@ -269,7 +283,7 @@ def get_uid(X_train, X_test):
     X_test['uid'] = X_test.card1_addr1.astype(str)+'_'+np.floor(X_test.day-X_test.D1).astype(str)
     return X_train, X_test
 
-def encode2(X_train, X_test):
+def encode2(X_train, X_test, cols):
     # FREQUENCY ENCODE UID
     encode_FE(X_train,X_test,['uid'])
     # AGGREGATE 
@@ -317,12 +331,15 @@ def BUILD96_train_and_imp_plot():
     del clf, h; x=gc.collect()
 
 
-def BUILD96(X_train, X_test):
+def BUILD96(X_train, X_test, y_train, cols):
     oof = np.zeros(len(X_train))
     preds = np.zeros(len(X_test))
 
     skf = GroupKFold(n_splits=6)
-    for i, (idxT, idxV) in enumerate( skf.split(X_train, y_train, groups=X_train['DT_M']) ):
+    print 'X_train.size = ', len(X_train), len(y_train)
+    print X_train['ProductCD'].unique()
+    for i, (idxT, idxV) in enumerate( skf.split(X_train, y_train, groups = X_train['TransactionID']) ):
+    # for i, (idxT, idxV) in enumerate( skf.split(X_train, y_train, groups=X_train['DT_M']) ):
         month = X_train.iloc[idxV]['DT_M'].iloc[0]
         print 'Fold',i,'withholding month',month
         print ' rows of train =',len(idxT),'rows of holdout =',len(idxV)
@@ -335,17 +352,17 @@ def BUILD96(X_train, X_test):
             missing=-1,
             eval_metric='auc',
             # USE CPU
-            #nthread=4,
-            #tree_method='hist'
+            # nthread=4,
+            tree_method='hist'
             # USE GPU
-            tree_method='gpu_hist' 
+            # tree_method='gpu_hist' 
         )        
         h = clf.fit(X_train[cols].iloc[idxT], y_train.iloc[idxT], 
                 eval_set=[(X_train[cols].iloc[idxV],y_train.iloc[idxV])],
                 verbose=100, early_stopping_rounds=200)
     
         oof[idxV] += clf.predict_proba(X_train[cols].iloc[idxV])[:,1]
-        preds += clf.predict_proba(X_test[cols])[:,1]/skf.n_splits
+        preds += clf.predict_proba(X_test[cols])[:, 1]/skf.n_splits
         del h, clf
         x=gc.collect()
     print '#'*20
@@ -365,14 +382,14 @@ def BUILD96_result_plot():
     X_train.set_index('TransactionID',drop=True,inplace=True)
 
 
-def BUILD96_output():
-    sample_submission = read_data_csv(r'\samplt_submission', int(sys.argv[1]))
+def BUILD96_output(preds):
+    sample_submission = read_data_csv(r'\sample_submission', int(sys.argv[1]))
     sample_submission.isFraud = preds
-    sample_submission.to_csv(data_path + 'sub_xgb_96.csv',index=False)
+    sample_submission.to_csv(data_path + 'sub_xgb_96_transactionID.csv',index=False)
 
-    plt.hist(sample_submission.isFraud,bins=100)
-    plt.ylim((0,5000))
-    plt.title('XGB96 Submission')
+    # plt.hist(sample_submission.isFraud,bins=100)
+    # plt.ylim((0,5000))
+    # plt.title('XGB96 Submission')
     # plt.show()
 
 def test():
@@ -394,14 +411,42 @@ def test():
     sample_submission.to_csv('sub_xgb_96_PP.csv',index=False)
 
 def main():
+    begin_time = time.time()
     df_train, df_test = read_all_data(int(sys.argv[1]))
-    df_train, df_test = data_normalize(df_train, df_test)
+    y_train = df_train['isFraud'].copy()
     print df_train.shape, df_test.shape
+    for i in range(1, 10):
+        print 'M' + str(i) + '.most_common = ', Counter(df_train['M1'].tolist()).most_common(10)
+        df_train['M' + str(i)] = df_train['M' + str(i)].apply(lambda x : 1 if str(x) == 'T' else -1 if str(x) == 'F' else 0).astype(np.int)
+        df_test['M' + str(i)] = df_test['M' + str(i)].apply(lambda x : 1 if str(x) == 'T' else -1 if str(x) == 'F' else 0).astype(np.int)
+        print 'M' + str(i) + '.most_common = ', Counter(df_train['M' + str(i)].tolist()).most_common(10)
+    
+    df_train, df_test = data_normalize(df_train, df_test)
+    df_train, df_test = add_datetime_feature(df_train, df_test)
     df_train, df_test = encode(df_train, df_test)
     cols = remove_cols(df_train)
     df_train, df_test = get_uid(df_train, df_test)
-    df_train, df_test = encode2(df_train, df_test)
-    oof, preds = BUILD96(df_train, df_test)
+    df_train, df_test = encode2(df_train, df_test, cols)
+    for col in ['ProductCD', 'card6', 'P_emaildomain', 'R_emaildomain', 'id_12', 'id_15', 'id_16', 'id_28', 'id_29', 'id_31', 'id_35', \
+            'id_36', 'id_37', 'id_38', 'DeviceType', 'DeviceInfo']:
+        le = LabelEncoder()
+        le.fit(df_train[col].tolist() + df_test[col].tolist())
+        df_train[col] = le.transform(df_train[col].tolist())
+        df_test[col] = le.transform(df_test[col].tolist())
+
+    print df_train[cols].info()
+    print df_train[['TransactionAmt']].info()
+    for col in cols:
+        if col == 'isFraud': continue
+        if col not in df_train.columns.values or col not in df_test.columns.values:
+            print '\nerror', col, '\n'
+        mean = np.mean(df_train[~df_train[col].isna()][col].tolist() + df_test[~df_test[col].isna()][col].tolist())
+        df_train[col] = df_train[col].fillna(mean)
+        df_test[col] = df_test[col].fillna(mean)
+    oof, preds = BUILD96(df_train, df_test, y_train, cols)
+    BUILD96_output(preds)
+
+    print 'spend time = ', time.time() - begin_time
 
 main()
 
