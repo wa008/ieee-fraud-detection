@@ -26,19 +26,17 @@ def read_data_pkl(data_name):
     df = pd.read_pickle(data_path + data_name + '.pkl')
     return df
 
-def read_data_csv(data_name, mark = 'all'):
-    df = ''
-    if mark == 'small':
-        nrows = 2000
-        df = pd.read_csv(data_path + data_name + '.csv', nrows = nrows)
-    elif mark == 'all':
+def read_data_csv(data_name, mark = 100):
+    if mark < 0:
         df = pd.read_csv(data_path + data_name + '.csv')
+    else:
+        df = pd.read_csv(data_path + data_name + '.csv', nrows = mark)
     return df
 
-def read_all_data(mark = 'small'):
+def read_all_data(mark = 100):
     print 'read_all_data', '-'*100
     now = time.time()
-    if mark == 'small':
+    if mark > 0:
         df_train_tran = read_data_csv(r'\train_transaction', mark)
         df_train_iden = read_data_csv(r'\train_identity', mark)
         df_test_tran = read_data_csv(r'\test_transaction', mark)
