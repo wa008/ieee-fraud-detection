@@ -1,7 +1,8 @@
+nohup: ignoring input
 D:\kaggle\data\ieee-fraud-detection\after_compete\
 XGBoost version: 0.82
 read_all_data ----------------------------------------------------------------------------------------------------
-read_data_time =  44.7769999504
+read_data_time =  42.1870000362
 (590540, 434) (506691, 433)
 M1.most_common =  [('T', 319415), (nan, 271100), ('F', 25)]
 M1.most_common =  [(1, 319415), (0, 271100), (-1, 25)]
@@ -90,3 +91,99 @@ TransactionAmt    590540 non-null float64
 dtypes: float64(1)
 memory usage: 9.0 MB
 None
+X_train.size =  590540 590540
+[4 1 0 3 2]
+Fold 0 withholding month 12
+ rows of train = 453219 rows of holdout = 137321
+[0]	validation_0-auc:0.804011
+Will train until validation_0-auc hasn't improved in 200 rounds.
+[100]	validation_0-auc:0.861785
+[200]	validation_0-auc:0.881991
+[300]	validation_0-auc:0.89313
+[400]	validation_0-auc:0.895905
+[500]	validation_0-auc:0.897888
+[600]	validation_0-auc:0.898207
+[700]	validation_0-auc:0.898649
+[800]	validation_0-auc:0.899005
+[900]	validation_0-auc:0.898811
+Stopping. Best iteration:
+[769]	validation_0-auc:0.899199
+
+Fold 1 withholding month 15
+ rows of train = 488908 rows of holdout = 101632
+[0]	validation_0-auc:0.812375
+Will train until validation_0-auc hasn't improved in 200 rounds.
+[100]	validation_0-auc:0.897945
+[200]	validation_0-auc:0.926273
+[300]	validation_0-auc:0.939213
+[400]	validation_0-auc:0.943742
+[500]	validation_0-auc:0.944416
+[600]	validation_0-auc:0.944749
+[700]	validation_0-auc:0.944974
+[800]	validation_0-auc:0.945024
+[900]	validation_0-auc:0.944905
+Stopping. Best iteration:
+[740]	validation_0-auc:0.945178
+
+Fold 2 withholding month 13
+ rows of train = 497955 rows of holdout = 92585
+[0]	validation_0-auc:0.834412
+Will train until validation_0-auc hasn't improved in 200 rounds.
+[100]	validation_0-auc:0.89702
+[200]	validation_0-auc:0.922752
+[300]	validation_0-auc:0.937809
+[400]	validation_0-auc:0.942712
+[500]	validation_0-auc:0.944036
+[600]	validation_0-auc:0.944197
+[700]	validation_0-auc:0.943992
+[800]	validation_0-auc:0.944001
+Stopping. Best iteration:
+[629]	validation_0-auc:0.944427
+
+Fold 3 withholding month 17
+ rows of train = 501214 rows of holdout = 89326
+[0]	validation_0-auc:0.81486
+Will train until validation_0-auc hasn't improved in 200 rounds.
+[100]	validation_0-auc:0.890784
+[200]	validation_0-auc:0.921716
+[300]	validation_0-auc:0.936352
+[400]	validation_0-auc:0.942012
+[500]	validation_0-auc:0.943111
+[600]	validation_0-auc:0.943207
+[700]	validation_0-auc:0.942687
+Stopping. Best iteration:
+[567]	validation_0-auc:0.943547
+
+Fold 4 withholding month 14
+ rows of train = 504519 rows of holdout = 86021
+[0]	validation_0-auc:0.843109
+Will train until validation_0-auc hasn't improved in 200 rounds.
+[100]	validation_0-auc:0.913694
+[200]	validation_0-auc:0.938147
+[300]	validation_0-auc:0.948587
+[400]	validation_0-auc:0.950938
+[500]	validation_0-auc:0.951225
+[600]	validation_0-auc:0.951106
+[700]	validation_0-auc:0.950919
+Stopping. Best iteration:
+[556]	validation_0-auc:0.951254
+
+Fold 5 withholding month 16
+ rows of train = 506885 rows of holdout = 83655
+[0]	validation_0-auc:0.827387
+Will train until validation_0-auc hasn't improved in 200 rounds.
+[100]	validation_0-auc:0.897123
+[200]	validation_0-auc:0.931712
+[300]	validation_0-auc:0.94909
+[400]	validation_0-auc:0.954955
+[500]	validation_0-auc:0.956594
+[600]	validation_0-auc:0.957437
+[700]	validation_0-auc:0.957686
+[800]	validation_0-auc:0.957655
+[900]	validation_0-auc:0.95758
+Stopping. Best iteration:
+[776]	validation_0-auc:0.957848
+
+####################
+XGB96 OOF CV= 0.939275733581035
+spend time =  14946.895

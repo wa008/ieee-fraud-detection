@@ -338,8 +338,8 @@ def BUILD96(X_train, X_test, y_train, cols):
     skf = GroupKFold(n_splits=6)
     print 'X_train.size = ', len(X_train), len(y_train)
     print X_train['ProductCD'].unique()
-    for i, (idxT, idxV) in enumerate( skf.split(X_train, y_train, groups = X_train['TransactionID']) ):
-    # for i, (idxT, idxV) in enumerate( skf.split(X_train, y_train, groups=X_train['DT_M']) ):
+    # for i, (idxT, idxV) in enumerate( skf.split(X_train, y_train, groups = X_train['TransactionID']) ):
+    for i, (idxT, idxV) in enumerate( skf.split(X_train, y_train, groups=X_train['DT_M']) ):
         month = X_train.iloc[idxV]['DT_M'].iloc[0]
         print 'Fold',i,'withholding month',month
         print ' rows of train =',len(idxT),'rows of holdout =',len(idxV)
