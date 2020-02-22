@@ -60,6 +60,11 @@ del clf, h; x=gc.collect()
 ```
 
 4. 可视化
-   1. 多个子图可视化
+   1. 多个子图可视
+   
+      ```
+      plt.subplot(row, col, i) # row行，col列的大图上，绘制第i个图
+      ```
+   
    2. heat map
 
